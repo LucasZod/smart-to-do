@@ -144,7 +144,7 @@ Documentação completa disponível em `/api` (Swagger UI).
 ### Gerenciamento de Objetivos
 
 - Criar objetivos com descrição em linguagem natural
-- Opção de gerar tarefas automaticamente via IA
+- Opção de gerar tarefas automaticamente via IA (Se a IA falhar, é criado um objetivo sem tasks pra alocar manualmente)
 - Deletar objetivos (remove todas as tarefas associadas)
 - Buscar objetivos por texto
 - Visualizar progresso (X/Y tarefas concluídas)

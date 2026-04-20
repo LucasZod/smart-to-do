@@ -56,7 +56,7 @@ export function initializeStore({ initialValues }: { initialValues?: Partial<Goa
     ...initialValues,
     setObjective: (value: string) => set((state) => ({ form: { ...state.form, objective: value } })),
     setApiKey: (value: string) => set((state) => ({ form: { ...state.form, apiKey: value } })),
-    setGenerateWithAi: (value: boolean) => set((state) => ({ form: { ...state.form, generateWithAi: value } })),
+    setGenerateWithAi: (value: boolean) => set((state) => ({ form: { ...state.form, generateWithAi: value, ...(!value && { apiKey: '' }) } })),
     setSearchTerm: (value: string) => set({ searchTerm: value }),
     resetForm: () => set({ form: initialForm }),
     clearError: () => set({ error: null })
@@ -83,7 +83,7 @@ export const createGoal = async () => {
     return
   }
 
-  useGoalsStore.setState({ form: initialForm, isLoading: false, isAiLoading: false })
+  useGoalsStore.setState(state => ({ form: { ...state.form, objective: '', }, isLoading: false, isAiLoading: false }))
 }
 
 export const removeGoal = async (id: string) => {
