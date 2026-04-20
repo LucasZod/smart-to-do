@@ -9,6 +9,7 @@ import { Spinner } from '@/app/shared/ui/Spinner'
 import type { Goal, Task } from '@/app/types'
 import { Variants, motion } from 'framer-motion'
 import { Show } from '@/app/shared/ui/Show'
+import { ConfirmOptions, useConfirm } from '@/app/shared/hooks/ConfirmAlert'
 
 interface GoalCardProps {
   goal: Goal
@@ -34,15 +35,17 @@ const CardWrapper = ({ children }: { children: React.ReactNode }) => (
 )
 
 const CardHeader = ({ goal }: { goal: Goal }) => {
+  const { Confirm, confirm } = useConfirm()
   const completed = goal.tasks.filter((t) => t.isCompleted).length
   const isCompleted = completed === goal.tasks.length && goal.tasks.length > 0
 
   return (
     <HeaderRow>
+      <Confirm />
       <GoalObjective isCompleted={isCompleted}>{goal.objective}</GoalObjective>
       <HeaderActions>
         <ProgressLabel completed={completed} total={goal.tasks.length} />
-        <DeleteGoalButton goalId={goal.id} />
+        <DeleteGoalButton goalId={goal.id} confirm={confirm} />
       </HeaderActions>
     </HeaderRow>
   )
@@ -68,11 +71,30 @@ const ProgressLabel = ({ completed, total }: { completed: number; total: number 
   </span>
 )
 
-const DeleteGoalButton = ({ goalId }: { goalId: string }) => (
-  <Button onClick={() => removeGoal(goalId)} className="text-white/20 hover:text-secondary transition-colors text-xs">
-    ✕
-  </Button>
-)
+const DeleteGoalButton = ({
+  goalId,
+  confirm
+}: {
+  goalId: string
+  confirm: (opts: ConfirmOptions) => Promise<boolean>
+}) => {
+  const handleRemove = async () => {
+    const confirmed = await confirm({
+      title: 'Confirmar exclusão',
+      description: 'Tem certeza que deseja excluir este objetivo? Esta ação não pode ser desfeita.',
+      confirmText: 'Excluir',
+      cancelText: 'Cancelar'
+    })
+    if (!confirmed) return
+    removeGoal(goalId)
+  }
+
+  return (
+    <Button onClick={handleRemove} className="text-white/20 hover:text-secondary transition-colors text-xs">
+      ✕
+    </Button>
+  )
+}
 
 const TaskList = ({ goal }: { goal: Goal }) => (
   <div className="flex flex-col gap-y-1">

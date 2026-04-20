@@ -5,16 +5,18 @@ import { Input } from '@/app/shared/ui/Input'
 import { Show } from '@/app/shared/ui/Show'
 
 export const GoalSearchInput = () => {
-  const { searchTerm } = Store()
+  const { searchTerm, goals } = Store()
 
   return (
-    <SearchWrapper>
-      <SearchIcon />
-      <SearchInput />
-      <Show when={!!searchTerm}>
-        <ClearButton />
-      </Show>
-    </SearchWrapper>
+    <Show when={!!goals.length}>
+      <SearchWrapper>
+        <SearchIcon />
+        <SearchInput />
+        <Show when={!!searchTerm}>
+          <ClearButton />
+        </Show>
+      </SearchWrapper>
+    </Show>
   )
 }
 

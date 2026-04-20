@@ -73,7 +73,9 @@ const RemainingBadge = () => {
   const classRemaining = getClassRemaining(remaining)
   const textRemaining = getTextRemaining(remaining)
 
-  return <span className={`rounded-full px-3 py-1 text-xs font-mono ${classRemaining}`}>{textRemaining}</span>
+  return (
+    <span className={`rounded-full px-3 py-1 text-xs text-center font-mono ${classRemaining}`}>{textRemaining}</span>
+  )
 }
 
 const getClassRemaining = (remaining: number) => {
