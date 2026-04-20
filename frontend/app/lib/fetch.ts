@@ -5,10 +5,7 @@ interface FetchOptions extends RequestInit {
 }
 
 export class ApiError extends Error {
-  constructor(
-    public status: number,
-    message: string
-  ) {
+  constructor(public status: number, message: string) {
     super(message)
     this.name = 'ApiError'
   }
@@ -24,12 +21,8 @@ const buildUrl = (path: string, params?: Record<string, string>): string => {
 
 const parseResponse = async <T>(response: Response): Promise<T> => {
   if (response.status === 204) return undefined as T
-
   const data = await response.json().catch(() => ({ message: 'Invalid response from server' }))
-
-  if (!response.ok) {
-    throw new ApiError(response.status, data?.message ?? `Request failed with status ${response.status}`)
-  }
+  if (!response.ok) throw new ApiError(response.status, data?.message ?? `Request failed with status ${response.status}`)
 
   return data as T
 }

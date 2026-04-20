@@ -8,7 +8,7 @@ export class GoalsRepository {
   constructor(
     @InjectRepository(Goal)
     private readonly repo: Repository<Goal>
-  ) {}
+  ) { }
 
   findAll(): Promise<Goal[]> {
     return this.repo.find()
@@ -20,6 +20,10 @@ export class GoalsRepository {
 
   save(goal: Partial<Goal>): Promise<Goal> {
     return this.repo.save(goal)
+  }
+
+  findByObjective(objective: string): Promise<Goal | null> {
+    return this.repo.findOneBy({ objective })
   }
 
   async deleteById(id: string): Promise<void> {

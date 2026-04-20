@@ -68,70 +68,80 @@ export const createGoal = async () => {
   const isAi = form.generateWithAi
 
   useGoalsStore.setState(isAi ? { isAiLoading: true, error: null } : { isLoading: true, error: null })
-  try {
-    await createGoalAction({
-      objective: form.objective,
-      generateWithAi: isAi,
-      apiKey: isAi ? form.apiKey : undefined
-    })
-    useGoalsStore.setState({ form: initialForm })
-  } catch (err) {
-    useGoalsStore.setState({ error: extractError(err) })
-  } finally {
-    const goals = await fetchGoalsAction()
-    useGoalsStore.setState({ isLoading: false, isAiLoading: false, goals })
+
+  const result = await createGoalAction({
+    objective: form.objective,
+    generateWithAi: isAi,
+    apiKey: isAi ? form.apiKey : undefined
+  })
+
+  const goalsResult = await fetchGoalsAction()
+  if (goalsResult.success) useGoalsStore.setState({ goals: goalsResult.data })
+
+  if (!result.success) {
+    useGoalsStore.setState({ isLoading: false, isAiLoading: false, error: result.error })
+    return
   }
+
+  useGoalsStore.setState({ form: initialForm, isLoading: false, isAiLoading: false })
 }
 
 export const removeGoal = async (id: string) => {
   useGoalsStore.setState({ isLoading: true, error: null })
-  try {
-    await removeGoalAction(id)
-    useGoalsStore.setState((state) => ({ goals: state.goals.filter((goal) => goal.id !== id) }))
-  } catch {
-    useGoalsStore.setState({ error: 'Falha ao deletar objetivo' })
-  } finally {
-    useGoalsStore.setState({ isLoading: false })
+
+  const result = await removeGoalAction(id)
+
+  if (!result.success) {
+    useGoalsStore.setState({ isLoading: false, error: result.error })
+    return
   }
+
+  useGoalsStore.setState((state) => ({ isLoading: false, goals: state.goals.filter((goal) => goal.id !== id) }))
 }
 
 export const addTask = async (goalId: string, payload: CreateTaskPayload) => {
-  try {
-    const task = await addTaskAction(goalId, payload)
-    useGoalsStore.setState((state) => ({
-      goals: state.goals.map((goal) => (goal.id === goalId ? { ...goal, tasks: [...goal.tasks, task] } : goal))
-    }))
-  } catch {
-    useGoalsStore.setState({ error: 'Falha ao adicionar tarefa' })
+  const result = await addTaskAction(goalId, payload)
+
+  if (!result.success) {
+    useGoalsStore.setState({ error: result.error })
+    return
   }
+
+  useGoalsStore.setState((state) => ({
+    goals: state.goals.map((goal) => (goal.id === goalId ? { ...goal, tasks: [...goal.tasks, result.data] } : goal))
+  }))
 }
 
 export const generateTasks = async (goalId: string, payload: GenerateTasksPayload) => {
   useGoalsStore.setState({ isAiLoading: true, error: null })
-  try {
-    const tasks = await generateTasksAction(goalId, payload)
-    useGoalsStore.setState((state) => ({
-      goals: state.goals.map((goal) => (goal.id === goalId ? { ...goal, tasks: [...goal.tasks, ...tasks] } : goal))
-    }))
-  } catch (err) {
-    useGoalsStore.setState({ error: extractError(err) })
-  } finally {
-    useGoalsStore.setState({ isAiLoading: false })
+
+  const result = await generateTasksAction(goalId, payload)
+
+  if (!result.success) {
+    useGoalsStore.setState({ isAiLoading: false, error: result.error })
+    return
   }
+
+  useGoalsStore.setState((state) => ({
+    isAiLoading: false,
+    goals: state.goals.map((goal) => (goal.id === goalId ? { ...goal, tasks: [...goal.tasks, ...result.data] } : goal))
+  }))
 }
 
 export const regenerateTasks = async (goalId: string, payload: GenerateTasksPayload) => {
   useGoalsStore.setState({ isAiLoading: true, error: null })
-  try {
-    const tasks = await regenerateTasksAction(goalId, payload)
-    useGoalsStore.setState((state) => ({
-      goals: state.goals.map((goal) => (goal.id === goalId ? { ...goal, tasks } : goal))
-    }))
-  } catch (err) {
-    useGoalsStore.setState({ error: extractError(err) })
-  } finally {
-    useGoalsStore.setState({ isAiLoading: false })
+
+  const result = await regenerateTasksAction(goalId, payload)
+
+  if (!result.success) {
+    useGoalsStore.setState({ isAiLoading: false, error: result.error })
+    return
   }
+
+  useGoalsStore.setState((state) => ({
+    isAiLoading: false,
+    goals: state.goals.map((goal) => (goal.id === goalId ? { ...goal, tasks: result.data } : goal))
+  }))
 }
 
 export const toggleTask = async (goalId: string, task: Task) => {
@@ -142,9 +152,10 @@ export const toggleTask = async (goalId: string, task: Task) => {
         : goal
     )
   }))
-  try {
-    await updateTaskAction(task.id, { isCompleted: !task.isCompleted })
-  } catch {
+
+  const result = await updateTaskAction(task.id, { isCompleted: !task.isCompleted })
+
+  if (!result.success) {
     useGoalsStore.setState((state) => ({
       goals: state.goals.map((goal) =>
         goal.id === goalId
@@ -152,24 +163,21 @@ export const toggleTask = async (goalId: string, task: Task) => {
           : goal
       )
     }))
-    useGoalsStore.setState({ error: 'Falha ao atualizar tarefa' })
+    useGoalsStore.setState({ error: result.error })
   }
 }
 
 export const removeTask = async (goalId: string, taskId: string) => {
-  try {
-    await removeTaskAction(taskId)
-    useGoalsStore.setState((state) => ({
-      goals: state.goals.map((goal) =>
-        goal.id === goalId ? { ...goal, tasks: goal.tasks.filter((t) => t.id !== taskId) } : goal
-      )
-    }))
-  } catch {
-    useGoalsStore.setState({ error: 'Falha ao deletar tarefa' })
-  }
-}
+  const result = await removeTaskAction(taskId)
 
-const extractError = (err: unknown): string => {
-  if (err instanceof Error) return err.message
-  return 'Algo deu errado'
+  if (!result.success) {
+    useGoalsStore.setState({ error: result.error })
+    return
+  }
+
+  useGoalsStore.setState((state) => ({
+    goals: state.goals.map((goal) =>
+      goal.id === goalId ? { ...goal, tasks: goal.tasks.filter((t) => t.id !== taskId) } : goal
+    )
+  }))
 }

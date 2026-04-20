@@ -23,8 +23,12 @@ export class GoalsService {
   ) { }
 
   async create(dto: CreateGoalDto): Promise<Goal> {
+    const existingGoal = await this.goalsRepository.findByObjective(dto.objective.toUpperCase())
+    if (existingGoal) throw new NotFoundException(`O objetivo "${dto.objective}" já existe`)
+
     const goal = await this.goalsRepository.save({ objective: dto.objective.toUpperCase() })
     if (dto.generateWithAi) await this.aiService.generateTasksForGoal(goal, dto.apiKey!)
+
     return this.goalsRepository.findById(goal.id) as Promise<Goal>
   }
 

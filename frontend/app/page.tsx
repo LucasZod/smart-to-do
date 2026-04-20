@@ -1,5 +1,5 @@
 import React from 'react'
-import { Header } from '@/app/shared/components/Header'
+import { GoalHeader } from '@/app/modules/goals/GoalHeader'
 import { Initializer } from '@/app/Initializer'
 import { fetchGoalsAction } from '@/app/actions/goals.actions'
 import { GoalForm } from '@/app/modules/goals/GoalForm'
@@ -15,7 +15,7 @@ export default async function Home() {
       <Initializer data={initialData} />
       <PageContainer>
         <PageContent>
-          <Header />
+          <GoalHeader />
           <GoalForm />
           <GoalSearchInput />
           <GoalList />
@@ -29,7 +29,8 @@ export default async function Home() {
 const getInitalData = async () => {
   try {
     const goals = await fetchGoalsAction()
-    return { goals }
+    if (!goals.success) throw new Error(goals.error)
+    return { goals: goals.data, error: null }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Não foi possível carregar os dados iniciais'
     return { goals: [], error: errorMessage }
