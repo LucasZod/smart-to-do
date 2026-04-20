@@ -8,6 +8,7 @@ import { Button } from '@/app/shared/ui/Button'
 import { Spinner } from '@/app/shared/ui/Spinner'
 import type { Goal, Task } from '@/app/types'
 import { Variants, motion } from 'framer-motion'
+import { Show } from '@/app/shared/ui/Show'
 
 interface GoalCardProps {
   goal: Goal
@@ -88,11 +89,17 @@ const CardFooter = ({ goal }: { goal: Goal }) => {
 
   return (
     <FooterWrapper>
-      {showAddTask && <AddTaskRow goalId={goal.id} onClose={() => setShowAddTask(false)} />}
-      {showRegenerate && hasAiTasks && <RegenerateRow goalId={goal.id} onClose={() => setShowRegenerate(false)} />}
+      <Show when={showAddTask}>
+        <AddTaskRow goalId={goal.id} onClose={() => setShowAddTask(false)} />
+      </Show>
+      <Show when={showRegenerate && hasAiTasks}>
+        <RegenerateRow goalId={goal.id} onClose={() => setShowRegenerate(false)} />
+      </Show>
       <FooterTriggers>
         <AddNodeTrigger onClick={() => setShowAddTask((v) => !v)} />
-        {hasAiTasks && <RegenerateTrigger onClick={() => setShowRegenerate((v) => !v)} />}
+        <Show when={hasAiTasks}>
+          <RegenerateTrigger onClick={() => setShowRegenerate((v) => !v)} />
+        </Show>
       </FooterTriggers>
     </FooterWrapper>
   )
@@ -146,7 +153,7 @@ const AddTaskRow = ({ goalId, onClose }: { goalId: string; onClose: () => void }
       <Input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="Capture rapidamente um pensamento ou tarefa..."
+        placeholder="Adicione uma nova tarefa para esse objetivo..."
         onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
       />
       <Button variant="ghost" onClick={onClose}>

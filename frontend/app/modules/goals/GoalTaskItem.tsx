@@ -4,22 +4,30 @@ import { toggleTask, removeTask } from '@/app/store/goals.store'
 import { Checkbox } from '@/app/shared/ui/Checkbox'
 import type { Task } from '@/app/types'
 import { Button } from '@/app/shared/ui/Button'
+import { Show } from '@/app/shared/ui/Show'
 
 interface TaskItemProps {
   task: Task
   goalId: string
 }
 
-export const GoalTaskItem = ({ task, goalId }: TaskItemProps) => (
-  <ItemWrapper>
-    <ItemLeft>
-      <TaskCheckbox task={task} goalId={goalId} />
-      <TaskTitle completed={task.isCompleted}>{task.title}</TaskTitle>
-      {task.isAiGenerated && <AiBadge />}
-    </ItemLeft>
-    <RemoveTaskButton taskId={task.id} goalId={goalId} />
-  </ItemWrapper>
-)
+export const GoalTaskItem = ({ task, goalId }: TaskItemProps) => {
+  const isCompleted = !!task.isCompleted
+  const isAiGenerated = !!task.isAiGenerated
+
+  return (
+    <ItemWrapper>
+      <ItemLeft>
+        <TaskCheckbox task={task} goalId={goalId} />
+        <TaskTitle completed={isCompleted}>{task.title}</TaskTitle>
+        <Show when={isAiGenerated}>
+          <AiBadge />
+        </Show>
+      </ItemLeft>
+      <RemoveTaskButton taskId={task.id} goalId={goalId} />
+    </ItemWrapper>
+  )
+}
 
 const ItemWrapper = ({ children }: { children: React.ReactNode }) => (
   <div className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/5 group transition-colors">
@@ -31,9 +39,11 @@ const ItemLeft = ({ children }: { children: React.ReactNode }) => (
   <div className="flex items-center gap-3 flex-1">{children}</div>
 )
 
-const TaskCheckbox = ({ task, goalId }: { task: Task; goalId: string }) => (
-  <Checkbox checked={task.isCompleted} onCheckedChange={() => toggleTask(goalId, task)} />
-)
+const TaskCheckbox = ({ task, goalId }: { task: Task; goalId: string }) => {
+  const handleToggleTask = () => toggleTask(goalId, task)
+
+  return <Checkbox checked={task.isCompleted} onCheckedChange={handleToggleTask} />
+}
 
 const TaskTitle = ({ children, completed }: { children: React.ReactNode; completed: boolean }) => (
   <span className={`text-sm transition-colors ${completed ? 'line-through text-white/30' : 'text-white/80'}`}>

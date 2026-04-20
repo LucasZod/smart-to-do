@@ -5,6 +5,7 @@ import { fetchGoalsAction } from '@/app/actions/goals.actions'
 import { GoalForm } from '@/app/modules/goals/GoalForm'
 import { GoalList } from '@/app/modules/goals/GoalList'
 import { ErrorToast } from '@/app/modules/goals/GoalErrorToast'
+import { GoalSearchInput } from './modules/goals/GoalSearchInput'
 
 export default async function Home() {
   const initialData = await getInitalData()
@@ -16,6 +17,7 @@ export default async function Home() {
         <PageContent>
           <Header />
           <GoalForm />
+          <GoalSearchInput />
           <GoalList />
           <ErrorToast />
         </PageContent>

@@ -16,6 +16,7 @@ export interface GoalsStoreProps {
   isLoading: boolean
   isAiLoading: boolean
   error: string | null
+  searchTerm: string
   form: {
     objective: string
     apiKey: string
@@ -27,6 +28,7 @@ export interface GoalsStore extends GoalsStoreProps {
   setObjective: (value: string) => void
   setApiKey: (value: string) => void
   setGenerateWithAi: (value: boolean) => void
+  setSearchTerm: (value: string) => void
   resetForm: () => void
   clearError: () => void
 }
@@ -42,6 +44,7 @@ const initialState: GoalsStoreProps = {
   isLoading: false,
   isAiLoading: false,
   error: null,
+  searchTerm: '',
   form: initialForm
 }
 
@@ -54,6 +57,7 @@ export function initializeStore({ initialValues }: { initialValues?: Partial<Goa
     setObjective: (value: string) => set((state) => ({ form: { ...state.form, objective: value } })),
     setApiKey: (value: string) => set((state) => ({ form: { ...state.form, apiKey: value } })),
     setGenerateWithAi: (value: boolean) => set((state) => ({ form: { ...state.form, generateWithAi: value } })),
+    setSearchTerm: (value: string) => set({ searchTerm: value }),
     resetForm: () => set({ form: initialForm }),
     clearError: () => set({ error: null })
   }))

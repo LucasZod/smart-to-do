@@ -56,12 +56,14 @@ const ObjectiveInput = () => {
   const { form, setObjective, isLoading, isAiLoading } = Store()
   const isBusy = isLoading || isAiLoading
 
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => setObjective(e.target.value)
+
   return (
     <React.Fragment>
       <input type="text" name="fake-text" style={{ display: 'none' }} />
       <Textarea
         value={form.objective}
-        onChange={(e) => setObjective(e.target.value)}
+        onChange={handleChange}
         placeholder="Descreva seu objetivo de alto nível em linguagem natural..."
         autoComplete="off"
         disabled={isBusy}
@@ -74,12 +76,15 @@ const ApiKeyInput = () => {
   const { form, setApiKey, isLoading, isAiLoading } = Store()
   const isBusy = isLoading || isAiLoading
   const generateWithAi = form.generateWithAi
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setApiKey(e.target.value)
+
   return (
     <React.Fragment>
       <input type="password" name="fake-pass" style={{ display: 'none' }} />
       <Input
         value={form.apiKey}
-        onChange={(e) => setApiKey(e.target.value)}
+        onChange={handleChange}
         placeholder="Chave da API do Orquestrador"
         type="password"
         autoComplete="new-password"
@@ -91,12 +96,9 @@ const ApiKeyInput = () => {
 }
 
 const AiToggle = () => {
-  const { form, setGenerateWithAi, isAiLoading, isLoading } = Store()
-  const isBusy = isLoading || isAiLoading
-
   return (
     <ToggleWrapper>
-      <Switch checked={form.generateWithAi} onCheckedChange={setGenerateWithAi} disabled={isBusy} />
+      <ToggleSwitch />
       <ToggleLabel />
     </ToggleWrapper>
   )
@@ -106,9 +108,16 @@ const ToggleWrapper = ({ children }: { children: React.ReactNode }) => (
   <div className="flex items-center gap-2">{children}</div>
 )
 
+const ToggleSwitch = () => {
+  const { form, setGenerateWithAi, isAiLoading, isLoading } = Store()
+  const isBusy = isLoading || isAiLoading
+
+  return <Switch checked={form.generateWithAi} onCheckedChange={setGenerateWithAi} disabled={isBusy} />
+}
+
 const ToggleLabel = () => {
   const { form } = Store()
-  const classGenerated = form.generateWithAi ? 'text-primary scale-105' : 'text-white/40'
+  const classGenerated = form.generateWithAi ? 'text-primary scale-105 font-semibold' : 'text-white/40'
   return <span className={`text-xs font-mono transition-all duration-200 ${classGenerated}`}>Gerar com IA</span>
 }
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useGoalsStore as Store } from '@/app/store/goals.store'
 import { GoalCard } from './GoalCard'
 import { EmptyState } from '@/app/shared/components/EmptyState'
@@ -7,21 +8,29 @@ import { Spinner } from '@/app/shared/ui/Spinner'
 import type { Goal } from '@/app/types'
 import { Variants } from 'framer-motion/dom'
 import { motion } from 'framer-motion'
+import { Show } from '@/app/shared/ui/Show'
 
 export const GoalList = () => {
-  const { isLoading, goals } = Store()
+  const { isLoading, goals, searchTerm } = Store()
+  const filteredGoals = useMemo(() => filterGoals(goals, searchTerm), [goals, searchTerm])
+  const hasGoals = !!goals.length
+  const hasFilteredGoals = !!filteredGoals.length
+  const hasNoResults = !hasFilteredGoals && hasGoals
 
   if (isLoading) return <LoadingState />
-  if (!goals.length) return <EmptyState />
 
   return (
     <ListWrapper>
-      <ListHeader />
-      <List>
-        {goals.map((goal: Goal) => (
-          <GoalCard key={goal.id} goal={goal} />
-        ))}
-      </List>
+      <Show when={!hasGoals}>
+        <EmptyState />
+      </Show>
+      <Show when={hasNoResults}>
+        <NoResultsState />
+      </Show>
+      <Show when={hasFilteredGoals}>
+        <ListHeader />
+        <List />
+      </Show>
     </ListWrapper>
   )
 }
@@ -57,8 +66,9 @@ const ActiveNodesLabel = () => (
 const FlowTitle = () => <h2 className="text-2xl font-bold text-white">Tarefas</h2>
 
 const RemainingBadge = () => {
-  const { goals: count } = Store()
-  const remaining = getObjectiveCount(count)
+  const { goals } = Store()
+
+  const remaining = getObjectiveCount(goals)
   const classRemaining = remaining > 0 ? 'bg-secondary/20 text-secondary' : 'bg-green-500/20 text-green-500'
   const textRemaining =
     remaining > 0
@@ -77,17 +87,21 @@ const getObjectiveCount = (goals: Goal[]) => {
   }, 0)
 }
 
-const List = ({ children }: { children: React.ReactNode }) => {
-  const { goals } = Store()
+const List = () => {
+  const { goals, searchTerm } = Store()
+  const filteredGoals = useMemo(() => filterGoals(goals, searchTerm), [goals, searchTerm])
+
   return (
     <motion.div
-      key={goals.length}
+      key={filteredGoals.length}
       initial="hidden"
       animate="visible"
       variants={staggerContainer}
       className="flex flex-col gap-y-3"
     >
-      {children}
+      {filteredGoals.map((goal: Goal) => (
+        <GoalCard key={goal.id} goal={goal} />
+      ))}
     </motion.div>
   )
 }
@@ -97,6 +111,20 @@ const LoadingState = () => (
     <Spinner className="h-10 w-10" />
   </div>
 )
+
+const NoResultsState = () => (
+  <div className="flex flex-col items-center gap-y-3 py-16 text-center">
+    <span className="text-3xl text-white/10">◎</span>
+    <p className="text-sm font-mono text-white/20">Nenhum objetivo encontrado com esse termo de busca.</p>
+  </div>
+)
+
+const filterGoals = (goals: Goal[], searchTerm: string) => {
+  if (!searchTerm.trim()) return goals
+
+  const term = searchTerm.toLowerCase()
+  return goals.filter((goal: Goal) => goal.objective.toLowerCase().includes(term))
+}
 
 const staggerContainer = {
   hidden: {},
