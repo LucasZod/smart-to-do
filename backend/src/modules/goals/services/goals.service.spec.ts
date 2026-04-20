@@ -31,6 +31,7 @@ describe('GoalsService', () => {
     save: jest.fn(),
     findAll: jest.fn(),
     findById: jest.fn(),
+    findByObjective: jest.fn(),
     deleteById: jest.fn()
   }
 
@@ -78,6 +79,7 @@ describe('GoalsService', () => {
 
       mockGoalsRepository.save.mockResolvedValue(mockGoal)
       mockGoalsRepository.findById.mockResolvedValue(goalWithTasks)
+      mockGoalsRepository.findByObjective.mockResolvedValue(null)
 
       const result = await service.create(dto)
 
@@ -94,7 +96,7 @@ describe('GoalsService', () => {
       mockGoalsRepository.save.mockResolvedValue(mockGoal)
       mockAiService.generateTasksForGoal.mockResolvedValue([mockTask])
       mockGoalsRepository.findById.mockResolvedValue(goalWithTasks)
-
+      mockGoalsRepository.findByObjective.mockResolvedValue(null)
       const result = await service.create(dto)
 
       expect(result).toEqual(goalWithTasks)
