@@ -49,6 +49,7 @@ Usuário insere objetivo → Frontend (Next.js)
   - `nvidia/nemotron-3-super-120b-a12b:free`
   - `z-ai/glm-4.5-air:free`
   - `openai/gpt-oss-120b:free`
+  - Criar apiKey no site, rápido e fácil
 - **Validação**: class-validator + class-transformer
 - **Documentação**: Swagger/OpenAPI
 
