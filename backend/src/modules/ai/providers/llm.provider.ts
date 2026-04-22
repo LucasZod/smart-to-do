@@ -3,14 +3,14 @@ import { HttpService } from '@nestjs/axios'
 import { firstValueFrom } from 'rxjs'
 import { AxiosError } from 'axios'
 import { AiProviderException } from '../../../shared/exceptions/ai-provider.exception'
-const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
+import { OPENROUTER_URL, OPENROUTER_MODELS, AI_CONFIG } from '../constants/ai.constants'
 
 @Injectable()
 export class LlmProvider {
   constructor(private readonly httpService: HttpService) { }
 
   async complete(objective: string, apiKey: string): Promise<string> {
-    const modelPromises = modelsKey.map((model) => this.completeWithModel(objective, apiKey, model))
+    const modelPromises = OPENROUTER_MODELS.map((model) => this.completeWithModel(objective, apiKey, model))
 
     try {
       return await Promise.any(modelPromises)
@@ -24,7 +24,7 @@ export class LlmProvider {
       const response = await firstValueFrom(
         this.httpService.post(OPENROUTER_URL, buildPayload(objective, model), {
           headers: buildHeaders(apiKey),
-          timeout: 15_000
+          timeout: AI_CONFIG.REQUEST_TIMEOUT
         })
       )
       return extractContent(response.data)
@@ -34,15 +34,14 @@ export class LlmProvider {
   }
 }
 
-const modelsKey = ['nvidia/nemotron-3-super-120b-a12b:free', 'z-ai/glm-4.5-air:free', 'openai/gpt-oss-120b:free']
-
 const buildPayload = (objective: string, model: string) => ({
   model,
   messages: [
     {
       role: 'system',
-      content:
-        'Você é um assistente de planejamento de tarefas. Dado um objetivo, retorne APENAS um array JSON válido de strings. Cada string é uma subtarefa curta e acionável. Sem explicação. Sem markdown. Sem texto extra. (Resposnda em pt-BR)'
+      content: `Você é um assistente de planejamento de tarefas. Dado um objetivo, 
+      retorne APENAS um array JSON válido de strings. Cada string é uma subtarefa curta e acionável. 
+      Sem explicação. Sem markdown. Sem texto extra. (Resposnda em pt-BR)`.trim()
     },
     {
       role: 'user',
@@ -58,7 +57,13 @@ const buildHeaders = (apiKey: string) => ({
 
 const extractContent = (data: unknown): string => {
   const response = data as { choices?: { message?: { content?: string } }[] }
-  return response?.choices?.[0]?.message?.content ?? ''
+  const content = response?.choices?.[0]?.message?.content?.trim()
+
+  if (!content) {
+    throw new AiProviderException('Resposta da IA está vazia ou mal formatada', HttpStatus.UNPROCESSABLE_ENTITY)
+  }
+
+  return content
 }
 
 const mapProviderError = (error: unknown): AiProviderException => {
