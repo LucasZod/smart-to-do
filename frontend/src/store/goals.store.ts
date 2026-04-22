@@ -1,5 +1,5 @@
 import { create, StoreApi, UseBoundStore } from 'zustand'
-import type { Goal, Task, CreateTaskPayload, GenerateTasksPayload } from '@/app/types'
+import type { Goal, Task, CreateTaskPayload, GenerateTasksPayload } from '@/types'
 import {
   fetchGoalsAction,
   createGoalAction,
@@ -9,7 +9,7 @@ import {
   regenerateTasksAction,
   updateTaskAction,
   removeTaskAction
-} from '@/app/actions/goals.actions'
+} from '@/app/(actions)/goals.actions'
 
 export interface GoalsStoreProps {
   goals: Goal[]

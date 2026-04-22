@@ -1,10 +1,10 @@
 'use client'
 
-import { toggleTask, removeTask } from '@/app/store/goals.store'
-import { Checkbox } from '@/app/shared/ui/Checkbox'
-import type { Task } from '@/app/types'
-import { Button } from '@/app/shared/ui/Button'
-import { Show } from '@/app/shared/ui/Show'
+import { toggleTask, removeTask } from '@/store/goals.store'
+import { Checkbox } from '@/shared/ui/Checkbox'
+import type { Task } from '@/types'
+import { Button } from '@/shared/ui/Button'
+import { Show } from '@/shared/ui/Show'
 
 interface TaskItemProps {
   task: Task

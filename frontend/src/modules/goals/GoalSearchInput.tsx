@@ -1,8 +1,8 @@
 'use client'
 
-import { useGoalsStore as Store } from '@/app/store/goals.store'
-import { Input } from '@/app/shared/ui/Input'
-import { Show } from '@/app/shared/ui/Show'
+import { useGoalsStore as Store } from '@/store/goals.store'
+import { Input } from '@/shared/ui/Input'
+import { Show } from '@/shared/ui/Show'
 
 export const GoalSearchInput = () => {
   const { searchTerm, goals } = Store()

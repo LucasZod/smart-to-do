@@ -1,15 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { useGoalsStore as Store, removeGoal, addTask, regenerateTasks } from '@/app/store/goals.store'
+import { useGoalsStore as Store, removeGoal, addTask, regenerateTasks } from '@/store/goals.store'
 import { GoalTaskItem } from './GoalTaskItem'
-import { Input } from '@/app/shared/ui/Input'
-import { Button } from '@/app/shared/ui/Button'
-import { Spinner } from '@/app/shared/ui/Spinner'
-import type { Goal, Task } from '@/app/types'
+import { Input } from '@/shared/ui/Input'
+import { Button } from '@/shared/ui/Button'
+import { Spinner } from '@/shared/ui/Spinner'
+import type { Goal, Task } from '@/types'
 import { Variants, motion } from 'framer-motion'
-import { Show } from '@/app/shared/ui/Show'
-import { ConfirmOptions, useConfirm } from '@/app/shared/hooks/ConfirmAlert'
+import { Show } from '@/shared/ui/Show'
+import { ConfirmOptions, useConfirm } from '@/shared/hooks/ConfirmAlert'
 
 interface GoalCardProps {
   goal: Goal

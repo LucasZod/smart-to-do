@@ -1,11 +1,11 @@
 import React from 'react'
-import { GoalHeader } from '@/app/modules/goals/GoalHeader'
-import { Initializer } from '@/app/Initializer'
-import { fetchGoalsAction } from '@/app/actions/goals.actions'
-import { GoalForm } from '@/app/modules/goals/GoalForm'
-import { GoalList } from '@/app/modules/goals/GoalList'
-import { ErrorToast } from '@/app/modules/goals/GoalErrorToast'
-import { GoalSearchInput } from './modules/goals/GoalSearchInput'
+import { GoalHeader } from '@/modules/goals/GoalHeader'
+import { Initializer } from '@/shared/components/PageInitializer'
+import { fetchGoalsAction } from '@/app/(actions)/goals.actions'
+import { GoalForm } from '@/modules/goals/GoalForm'
+import { GoalList } from '@/modules/goals/GoalList'
+import { ErrorToast } from '@/modules/goals/GoalErrorToast'
+import { GoalSearchInput } from '../modules/goals/GoalSearchInput'
 
 export default async function Home() {
   const initialData = await getInitalData()

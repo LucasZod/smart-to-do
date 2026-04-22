@@ -1,15 +1,15 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useGoalsStore as Store } from '@/app/store/goals.store'
+import { useGoalsStore as Store } from '@/store/goals.store'
 import { GoalCard } from './GoalCard'
-import { EmptyState } from '@/app/shared/components/EmptyState'
-import { Spinner } from '@/app/shared/ui/Spinner'
-import type { Goal } from '@/app/types'
+import { EmptyState } from '@/shared/components/EmptyState'
+import { Spinner } from '@/shared/ui/Spinner'
+import type { Goal } from '@/types'
 import { Variants } from 'framer-motion/dom'
 import { motion } from 'framer-motion'
-import { Show } from '@/app/shared/ui/Show'
-import { NoResultsState } from '@/app/shared/components/NoResultState'
+import { Show } from '@/shared/ui/Show'
+import { NoResultsState } from '@/shared/components/NoResultState'
 
 export const GoalList = () => {
   const { isLoading, goals, searchTerm } = Store()

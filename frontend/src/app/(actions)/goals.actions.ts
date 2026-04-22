@@ -1,6 +1,6 @@
 'use server'
 
-import { http, ApiError } from '@/app/lib/fetch'
+import { http, ApiError } from '@/lib/fetch'
 import type {
   Goal,
   Task,
@@ -8,7 +8,7 @@ import type {
   GenerateTasksPayload,
   CreateTaskPayload,
   UpdateTaskPayload
-} from '@/app/types'
+} from '@/types'
 
 type ActionResult<T> = { success: true; data: T } | { success: false; error: string }
 

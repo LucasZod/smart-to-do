@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useGoalsStore as Store } from '@/app/store/goals.store'
+import { useGoalsStore as Store } from '@/store/goals.store'
 
 export const ErrorToast = () => {
   const { error, clearError } = Store()

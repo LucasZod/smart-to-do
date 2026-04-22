@@ -1,11 +1,11 @@
 'use client'
 
-import { useGoalsStore as Store, createGoal } from '@/app/store/goals.store'
-import { Input } from '@/app/shared/ui/Input'
-import { Textarea } from '@/app/shared/ui/Textarea'
-import { Switch } from '@/app/shared/ui/Switch'
-import { Button } from '@/app/shared/ui/Button'
-import { Spinner } from '@/app/shared/ui/Spinner'
+import { useGoalsStore as Store, createGoal } from '@/store/goals.store'
+import { Input } from '@/shared/ui/Input'
+import { Textarea } from '@/shared/ui/Textarea'
+import { Switch } from '@/shared/ui/Switch'
+import { Button } from '@/shared/ui/Button'
+import { Spinner } from '@/shared/ui/Spinner'
 import React from 'react'
 
 export const GoalForm = () => (
