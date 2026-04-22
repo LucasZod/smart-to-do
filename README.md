@@ -1,227 +1,207 @@
 # Smart To-Do
 
-Sistema de gerenciamento de tarefas com decomposição automática de objetivos usando IA.
+Lista de tarefas com IA que decompõe objetivos em subtarefas executáveis automaticamente.
 
-## O que é
-
-Smart To-Do permite criar objetivos de alto nível e decompô-los automaticamente em tarefas acionáveis usando modelos de linguagem (LLMs). O sistema usa múltiplos modelos em paralelo para garantir disponibilidade, retornando o resultado do primeiro que responder com sucesso.
-
-## Como funciona
-
-1. **Criação de Objetivos**: Descreva um objetivo em linguagem natural
-2. **Decomposição com IA** (opcional): A IA analisa o objetivo e gera uma lista de subtarefas
-3. **Gerenciamento de Tarefas**: Marque tarefas como concluídas, adicione novas manualmente, ou regenere com IA
-4. **Busca e Filtragem**: Encontre objetivos específicos usando a busca em tempo real
-
-### Fluxo de Dados
-
-```
-Usuário insere objetivo → Frontend (Next.js)
-                              ↓
-                     Server Actions (fetch)
-                              ↓
-                    Backend API (NestJS)
-                              ↓
-            ┌─────────────────┴──────────────────┐
-            ↓                                     ↓
-       Salva no SQLite                    Chama OpenRouter API
-       (TypeORM)                          (3 modelos em paralelo)
-            ↓                                     ↓
-       Retorna objetivo                   Parseia JSON
-            ↓                                     ↓
-            └──────────────── Tarefas geradas ────┘
-                              ↓
-                    Retorna para Frontend
-                              ↓
-                  Atualiza estado (Zustand)
-                              ↓
-                    UI atualizada em tempo real
-```
-
-## Stack Tecnológica
-
-### Backend
-
-- **Framework**: NestJS 11
-- **Linguagem**: TypeScript 5.7
-- **Database**: SQLite (better-sqlite3) + TypeORM
-- **IA**: OpenRouter API (modelos gratuitos)
-  - `nvidia/nemotron-3-super-120b-a12b:free`
-  - `z-ai/glm-4.5-air:free`
-  - `openai/gpt-oss-120b:free`
-  - Criar apiKey no site, rápido e fácil
-- **Validação**: class-validator + class-transformer
-- **Documentação**: Swagger/OpenAPI
-
-### Frontend
-
-- **Framework**: Next.js 16 (App Router)
-- **Linguagem**: TypeScript 5
-- **UI**: React 19
-- **Estado**: Zustand 5
-- **Estilo**: Tailwind CSS 4
-- **Animações**: Framer Motion 12
-- **HTTP**: Fetch API nativo
-
-### DevOps
-
-- **Container**: Docker + Docker Compose
-- **Build**: Multi-stage Dockerfile (Alpine Linux)
-- **Persistência**: Volume Docker para SQLite
-
-## Instalação
-
-### Pré-requisitos
-
-- Docker e Docker Compose instalados
-- (Opcional) Chave de API do OpenRouter para funcionalidades de IA
-
-### Rodando o projeto
+## Como rodar
 
 ```bash
-# Clone o repositório
-git clone <repository-url>
-cd smart-to-do
-
-# Suba os containers
 docker-compose up --build
-
-# Acesse:
-# - Frontend: http://localhost:3000
-# - Backend API: http://localhost:3001
-# - Swagger: http://localhost:3001/api
 ```
 
-O banco de dados SQLite será criado automaticamente em `./data/todo.db`.
+Pronto. Acesse:
+- **App**: http://localhost:3000
+- **API**: http://localhost:3001
+- **Swagger**: http://localhost:3001/api
 
-### Rodando localmente (sem Docker)
+Pra usar a IA, crie uma chave grátis no [OpenRouter](https://openrouter.ai/keys) e cole na interface.
 
-#### Backend
+## O que faz
 
-```bash
-cd backend
-npm install
-npm run start:dev
-# Roda em http://localhost:3001
-```
+Você escreve um objetivo tipo "Planejar uma viagem pra Europa" e a IA quebra isso em tarefas menores tipo:
+- Pesquisar passagens aéreas
+- Reservar hospedagem
+- Fazer roteiro de pontos turísticos
+- etc.
 
-#### Frontend
+Se a IA falhar ou você quiser fazer manual, pode criar as tarefas na mão também.
 
-```bash
-cd frontend
-pnpm install
-pnpm dev
-# Roda em http://localhost:3000
-```
+## Stack
 
-**Importante**: Configure `NEXT_PUBLIC_API_URL=http://localhost:3001` no frontend.
+- **Backend**: NestJS 11 + TypeScript + SQLite + TypeORM
+- **Frontend**: Next.js 16 + React 19 + Zustand + Tailwind
+- **IA**: OpenRouter (3 modelos gratuitos rodando em paralelo)
+- **DevOps**: Docker Compose
 
-## API Endpoints
+## Decisões Técnicas e Trade-offs
 
-### Objetivos (Goals)
+Aqui vão as escolhas que fiz e por quê, já que o desafio pedia uma explicação:
 
-| Método | Endpoint                      | Descrição                         |
-| ------ | ----------------------------- | --------------------------------- |
-| POST   | `/goals`                      | Criar objetivo (com ou sem IA)    |
-| GET    | `/goals`                      | Listar todos os objetivos         |
-| GET    | `/goals/:id`                  | Buscar objetivo específico        |
-| DELETE | `/goals/:id`                  | Deletar objetivo (e suas tarefas) |
-| POST   | `/goals/:id/tasks`            | Adicionar tarefa manual           |
-| POST   | `/goals/:id/tasks/generate`   | Gerar tarefas com IA              |
-| POST   | `/goals/:id/tasks/regenerate` | Regenerar todas as tarefas        |
+### 1. Goal + Tasks ao invés de só Tasks (diferente do enunciado)
 
-### Tarefas (Tasks)
+**Por quê:** O enunciado pedia só tasks, mas pensei: "se a pessoa vai planejar múltiplos objetivos, faz sentido agrupar". Então criei Goals (objetivos) que têm Tasks (tarefas).Fica mais organizado e permite ter vários projetos rodando.
 
-| Método | Endpoint     | Descrição                           |
-| ------ | ------------ | ----------------------------------- |
-| PATCH  | `/tasks/:id` | Atualizar tarefa (título ou status) |
-| DELETE | `/tasks/:id` | Deletar tarefa                      |
+**Trade-off:** Mais complexidade no modelo de dados (relacionamento 1:N) e mais endpoints na API. Mas achei que valia pela organização.
 
-Documentação completa disponível em `/api` (Swagger UI).
+### 2. Arquitetura modular (goals, tasks, ai)
 
-## Funcionalidades
+**Por quê:** Separei em 3 módulos independentes ao invés de jogar tudo num controller só. É um sistema pequeno, mas quis mostrar como estruturo código pra escalar. Cada módulo tem seu controller → service → repository.
 
-### Gerenciamento de Objetivos
+**Trade-off:** Mais arquivos e pastas, pode parecer over-engineering pra um app simples. Mas facilita manutenção e testes.
 
-- Criar objetivos com descrição em linguagem natural
-- Opção de gerar tarefas automaticamente via IA (Se a IA falhar, é criado um objetivo sem tasks pra alocar manualmente)
-- Deletar objetivos (remove todas as tarefas associadas)
-- Buscar objetivos por texto
-- Visualizar progresso (X/Y tarefas concluídas)
+### 3. class-validator nos DTOs
 
-### Gerenciamento de Tarefas
+**Por quê:** Validação declarativa. Só boto `@IsNotEmpty()` e `@MaxLength(255)` no DTO e o NestJS valida automaticamente. Menos código de validação manual.
 
-- Adicionar tarefas manualmente
-- Gerar tarefas automaticamente usando IA
-- Regenerar lista completa de tarefas
-- Marcar como concluída/pendente (otimista com rollback)
-- Editar título das tarefas
-- Deletar tarefas individuais
-- Badge visual para tarefas geradas por IA
+**Trade-off:** Dependência extra e decorators em tudo. Mas economiza muito boilerplate.
 
-### Integração com IA
+### 4. 3 modelos de IA em paralelo com Promise.any()
 
-- **Strategy**: Promise.any() com 3 modelos em paralelo
-- **Fallback**: Se um modelo falha, tenta os outros
-- **Performance**: Retorna resultado do primeiro modelo que responde
-- **Prompt**: Otimizado para retornar JSON array de strings
-- **Idioma**: Prompts e respostas em português
+**Por quê:** Modelos gratuitos são instáveis. Um pode estar fora, outro com rate limit, outro lento. Então faço 3 requests ao mesmo tempo e pego o primeiro que responder certo. Garantia de resultado.
 
-### Interface
+Modelos:
+- nvidia/nemotron-3-super-120b-a12b:free
+- z-ai/glm-4.5-air:free
+- openai/gpt-oss-120b:free
 
-- Busca em tempo real de objetivos
-- Loading states diferenciados (AI vs operações normais)
-- Spinner customizado com gradient (primário → secundário)
-- Toast de erro com auto-dismiss
-- Estados vazios informativos
-- Animações suaves (Framer Motion)
-- Design responsivo e dark theme
+**Trade-off:** Gasta mais requests (mas são grátis). Se todos falharem, aí sim retorna erro 503.
+
+### 5. SQLite ao invés de Postgres
+
+**Por quê:** Zero configuração. O enunciado pediu portabilidade, então SQLite é perfeito. Roda embedded, não precisa de servidor separado, e o arquivo fica num volume Docker.
+
+**Trade-off:** Não aguenta muita concorrência de escrita. Mas pra um to-do pessoal, é mais que suficiente.
+
+### 6. TypeORM com eager loading
+
+**Por quê:** Quando carrega um Goal, já traz as Tasks junto numa query só. Evita N+1 queries.
+
+**Trade-off:** Se o Goal tiver centenas de tasks, pode pesar. Mas é improvável nesse contexto.
+
+### 7. Zustand ao invés de Redux
+
+**Por quê:** Redux é pesado demais pra isso. Zustand é leve, sem boilerplate, e resolve o problema. Só um `create()` e pronto.
+
+**Trade-off:** Menos ferramentas de debug que Redux DevTools. Mas pra um app desse tamanho, não faz falta.
+
+### 8. Server Actions do Next.js
+
+**Por quê:** Ao invés de criar rotas API no Next.js, usei Server Actions. Type-safe entre client/server sem duplicar tipos, e roda server-side (API key não vaza pro browser).
+
+**Trade-off:** Fica amarrado ao Next.js. Se quiser reusar o backend com mobile, precisa de REST puro.
+
+### 9. Optimistic updates nas tasks
+
+**Por quê:** Quando você marca uma tarefa como concluída, ela já muda na tela na hora. Se der erro, reverte. UX melhor.
+
+**Trade-off:** Mais complexidade no código de rollback. Mas vale pela experiência.
+
+### 10. HttpService do NestJS ao invés de Axios direto
+
+**Por quê:** O NestJS já tem um wrapper do Axios integrado com o DI system deles. Uso isso pra chamar a API do OpenRouter.
+
+**Trade-off:** Nenhum, é só usar o que o framework já oferece.
+
+### 11. Fetch API nativo no frontend
+
+**Por quê:** Node 18+ já tem fetch. Não preciso de Axios nem ky. Criei um wrapper simples pra tratar erros e pronto.
+
+**Trade-off:** API um pouco mais verbosa. Mas economiza KB no bundle.
+
+### 12. Docker multi-stage build com Alpine
+
+**Por quê:** Imagem final menor e build mais rápido. Compila num estágio, copia só o necessário pro outro.
+
+**Trade-off:** Tive que usar npm ao invés de pnpm no backend por causa do better-sqlite3 (bindings nativos dão problema com pnpm no Docker). Funciona, mas perde os workspaces.
+
+### 13. Prompt em português
+
+**Por quê:** Se o app é BR, faz sentido a IA falar PT também. Prompt otimizado pra retornar JSON array de strings direto.
+
+**Trade-off:** Se mudar idioma, precisa traduzir o prompt também.
+
+### 14. Swagger auto-gerado
+
+**Por quê:** Decorators do `@nestjs/swagger` geram a doc automaticamente. Não preciso escrever OpenAPI na mão.
+
+**Trade-off:** Mais decorators nos controllers. Mas doc sempre atualizada.
+
+### 15. ActionResult pattern nas server actions
+
+**Por quê:** Ao invés de lançar exceções, retorno `{ success: true, data }` ou `{ success: false, error }`. Cliente sabe lidar com erro sem try/catch.
+
+**Trade-off:** Mais verboso. Mas o tratamento de erro fica explícito.
+
+### 16. Sem edição de Goals
+
+**Por quê:** Simplicidade. Você cria um Goal e ele fica imutável. Quer mudar? Deleta e cria outro. Tasks você pode editar.
+
+**Trade-off:** Menos flexível. Mas foi escolha consciente pra não complicar.
+
+### 17. TypeScript strict mode (sem `any`)
+
+**Por quê:** Se não tipa direito, quebra. Prefiro erro em dev time que em prod.
+
+**Trade-off:** Mais verboso, às vezes precisa de type guards chatos. Mas bugs são pegos cedo.
+
+### 18. Testes unitários nos services
+
+**Por quê:** O enunciado pediu testes. Botei nos services principais (goals, tasks, ai). Usa mocks pra isolar dependências.
+
+**Trade-off:** Mais tempo pra escrever. Mas garante que a lógica não quebra.
 
 ## Estrutura do Projeto
 
 ```
-smart-to-do/
-├── backend/              # API NestJS
-│   ├── src/
-│   │   ├── modules/
-│   │   │   ├── goals/    # CRUD de objetivos
-│   │   │   ├── tasks/    # CRUD de tarefas
-│   │   │   └── ai/       # Integração OpenRouter
-│   │   └── main.ts
-│   └── Dockerfile
-├── frontend/             # App Next.js
-│   ├── app/
-│   │   ├── actions/      # Server actions
-│   │   ├── modules/      # Componentes de features
-│   │   ├── shared/       # Componentes reutilizáveis
-│   │   ├── store/        # Zustand store
-│   │   └── lib/          # HTTP client
-│   └── Dockerfile
-├── data/                 # Volume Docker (SQLite)
-│   └── todo.db
-└── docker-compose.yml
+backend/
+├── src/modules/
+│   ├── goals/          # CRUD de objetivos
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── providers/  # repositories
+│   │   ├── entities/
+│   │   └── dto/
+│   ├── tasks/          # CRUD de tarefas
+│   └── ai/             # Integração OpenRouter
+└── Dockerfile
+
+frontend/
+├── app/
+│   ├── actions/        # Server actions
+│   ├── modules/goals/  # Componentes de features
+│   ├── shared/         # UI reutilizável
+│   ├── store/          # Zustand
+│   └── lib/            # HTTP client
+└── Dockerfile
 ```
 
-## Arquitetura
+## Funcionalidades
 
-### Backend (NestJS)
+- Criar objetivo com ou sem IA
+- Buscar objetivos em tempo real
+- Adicionar/editar/deletar tarefas
+- Marcar como concluída (otimista com rollback)
+- Regenerar tarefas com IA
+- Progress tracking (X/Y concluídas)
+- Toast de erro com mensagens reais da API
+- Loading states (normal + IA)
+- Badge pra tasks geradas por IA
 
-- **Padrão**: Controller → Service → Repository
-- **Modularização**: Cada domínio (goals, tasks, ai) é um módulo isolado
-- **Validação**: DTOs com decorators do class-validator
-- **Exceções**: Customizadas por tipo de erro (AI, validação, not found)
-- **TypeORM**: Repository pattern com eager loading de relações
+## API Endpoints
 
-### Frontend (Next.js)
+| Método | Rota | O que faz |
+|--------|------|-----------|
+| POST | `/goals` | Criar objetivo (±IA) |
+| GET | `/goals` | Listar tudo |
+| DELETE | `/goals/:id` | Deletar objetivo |
+| POST | `/goals/:id/tasks` | Add tarefa manual |
+| POST | `/goals/:id/tasks/generate` | Gerar com IA |
+| POST | `/goals/:id/tasks/regenerate` | Regenerar tudo |
+| PATCH | `/tasks/:id` | Atualizar tarefa |
+| DELETE | `/tasks/:id` | Deletar tarefa |
 
-- **Server Components**: Renderização inicial server-side
-- **Client Components**: Interatividade com React
-- **Server Actions**: Camada de comunicação com backend
-- **Zustand**: Estado global simplificado sem boilerplate
-- **Composição**: Componentes pequenos e focados
-- **Otimismo**: UI updates imediatos com rollback em caso de erro
+Documentação completa: http://localhost:3001/api
 
-### Database
+## Banco de Dados
 
 ```sql
 Goal (id, objective, createdAt)
@@ -229,55 +209,96 @@ Goal (id, objective, createdAt)
       └── CASCADE DELETE
 ```
 
-## Variáveis de Ambiente
-
-### Backend
-
-```env
-DB_PATH=/app/data/todo.db    # Caminho do SQLite
-PORT=3001                     # Porta da API
-```
-
-### Frontend
-
-```env
-NEXT_PUBLIC_API_URL=http://backend:3001    # URL da API (usa service name no Docker)
-```
+Relação 1:N com cascade. Deletou o Goal, deleta as Tasks junto.
 
 ## Tratamento de Erros
 
 ### Backend
-
-| Status | Cenário                                             |
-| ------ | --------------------------------------------------- |
-| 400    | Validação falhou (campo obrigatório, tipo inválido) |
-| 401    | Chave de API inválida                               |
-| 404    | Recurso não encontrado                              |
-| 422    | Resposta da IA não é JSON válido                    |
-| 429    | Rate limit da API excedido                          |
-| 503    | Timeout ou indisponibilidade da IA                  |
+- **400**: Validação falhou
+- **404**: Não encontrado
+- **422**: IA retornou JSON inválido
+- **429**: Rate limit da API excedido
+- **503**: Timeout ou IA indisponível
 
 ### Frontend
+- Captura tudo e mostra toast
+- Mensagem real da API (não aquele erro genérico do Next.js)
+- Auto-dismiss em 4s
+- Rollback otimista se falhar
 
-- Todos os erros são capturados e mostrados em toast
-- Erros reais da API (não generic digest do Next.js)
-- Auto-dismiss após 4 segundos
-- Rollback otimista em caso de falha
+## Resiliência
+
+- **Promise.any()**: Se um modelo falha, usa outro
+- **Timeout**: 15s máximo por modelo
+- **Fallback**: Se todos falharem, retorna 503 mas ainda cria o Goal vazio
+- **Validação**: Backend valida tudo antes de processar
+- **Rollback**: Frontend reverte UI se API falhar
 
 ## Performance
 
-- **Lazy Loading**: Componentes carregados sob demanda
-- **Optimistic Updates**: UI responde instantaneamente
-- **Parallel Requests**: Múltiplos modelos de IA em paralelo
-- **Minimal Bundle**: Next.js standalone mode
-- **SQLite**: Zero latência de rede, embedded database
-- **Eager Loading**: Tasks carregadas junto com goals (1 query)
+- Optimistic updates (UI responde antes da API)
+- 3 modelos em paralelo (primeiro que responder)
+- Eager loading (1 query ao invés de N+1)
+- SQLite embedded (zero latência de rede)
+- Next.js standalone mode (bundle mínimo)
 
 ## Segurança
 
-- **Validação**: Todos os inputs validados no backend
-- **Whitelist**: Campos desconhecidos removidos automaticamente
-- **Type Safety**: TypeScript strict mode
-- **SQL Injection**: Protegido pelo TypeORM query builder
-- **API Key**: Enviada via body (não persiste no servidor)
-- **CORS**: Configurável por ambiente
+- Validação server-side com class-validator
+- TypeScript strict (sem `any`)
+- SQL injection protegido (TypeORM)
+- API key não persiste no servidor
+- Whitelist automático (remove campos desconhecidos)
+
+## Rodando sem Docker
+
+**Backend:**
+```bash
+cd backend
+npm install
+npm run start:dev
+```
+
+**Frontend:**
+```bash
+cd frontend
+pnpm install
+pnpm dev
+```
+
+Configure `NEXT_PUBLIC_API_URL=http://localhost:3001` no frontend.
+
+## Testes
+
+```bash
+cd backend
+npm test
+```
+
+Tem testes unitários nos services principais (goals, tasks, ai).
+
+## O que faltou (e por quê)
+
+**Autenticação:** Não implementei porque não estava no escopo. É single-user por enquanto.
+
+**Testes E2E:** Tem unitários, mas não fiz integração/E2E por tempo. Seria com Cypress ou Playwright.
+
+**CI/CD:** Não configurei pipeline. Seria GitHub Actions com build + test + deploy.
+
+**Edição de Goals:** Escolha consciente. Goals são imutáveis, só Tasks editam.
+
+## Melhorias Futuras
+
+- Multi-user com autenticação
+- Subtarefas (hierarquia)
+- Deadlines e lembretes
+- Drag-and-drop pra priorizar
+- Export/import (JSON)
+- PWA offline-first
+- Testes E2E
+
+---
+
+**Licença:** MIT
+
+**Nota:** Esse projeto foi desenvolvido como parte do desafio técnico da Sinky. Fiz algumas adaptações no escopo original (Goals + Tasks ao invés de só Tasks) porque achei que fazia mais sentido pra um sistema real.
