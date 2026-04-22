@@ -279,7 +279,7 @@ Configure `NEXT_PUBLIC_API_URL=http://localhost:3001` no frontend.
 
 ```bash
 cd backend
-npm test
+pnpm test
 ```
 
 Tem testes unitários nos services principais (goals, tasks, ai).
